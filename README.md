@@ -1,6 +1,11 @@
 # photons-game
 
-A sandbox game I had the misfortune to write in `python`+`tkinter` (I thought it was a good idea).
+## The game
+
+This is a sandbox game I had the misfortune to write in `python`+`tkinter` (I thought it was a good idea).
+The source code of this game is not very beautiful, and I didn't have much experience with python when I was making it. However, I still think that the concept of a simulation game that replicates binary logic with light beams is cool.
+
+## Gameplay
 
 In this game you can place different blocks that work with light beams: lasers, mirrors, lasers, filters etc.
 
