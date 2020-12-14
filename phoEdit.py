@@ -57,7 +57,6 @@ Z = ph.Field(size=(fieldWidth, fieldHeight), scale=fieldScale)
 
 def editorLoop():
     Z.draw(Z.scale)
-    pass
 
 Z.tkRoot.after(ms=15,func=editorLoop)
 
@@ -84,9 +83,8 @@ def dataFromBlock(x,y):
     C = Z[x,y]
     if C.stack == []:
         return {}
-    else:
-        B = C.stack[0]
-        return {'blockType':B.__class__, 'rotate':B.rotate, 'options':copy.deepcopy(B.options)}
+    B = C.stack[0]
+    return {'blockType':B.__class__, 'rotate':B.rotate, 'options':copy.deepcopy(B.options)}
 
 LogEnable = False
 
@@ -427,17 +425,15 @@ def copySelection(arg=None):
         
 def pasteSelection(arg=None):
     global Z, clipboard
-    if clipboard is not None:
-        if Z.isMarked():
-            print("success")
-            Z.pasteSelection(selection=clipboard, pos=Z.mark)
+    if clipboard is not None and Z.isMarked():
+        print("success")
+        Z.pasteSelection(selection=clipboard, pos=Z.mark)
     Z.draw(Z.scale)
     
 def pasteSelectionHard(arg=None):
     global Z, clipboard
-    if clipboard is not None:
-        if Z.isMarked():
-            Z.pasteSelection(selection=clipboard, pos=Z.mark, hard=True)
+    if clipboard is not None and Z.isMarked():
+        Z.pasteSelection(selection=clipboard, pos=Z.mark, hard=True)
     Z.draw(Z.scale)
     
 def clearSelection(arg=None):

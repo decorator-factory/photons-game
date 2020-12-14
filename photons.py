@@ -24,14 +24,12 @@ def listToDictColor(l):
     return {'r':l[0], 'g':l[1], 'b':l[2]}
 
 def colorFromLetter(color):
-    if color == "r":
-        cr = '#FF0000'
-    elif color == "g":
-        cr = '#00FF00'
+    if color == "g":
+        return '#00FF00'
+    elif color == "r":
+        return '#FF0000'
     else:
-        cr = '#0000FF'
-    
-    return cr
+        return '#0000FF'
 
 def emptyColor():
     return {'r':0,'g':0,'b':0}
@@ -40,12 +38,11 @@ def fixColor(c):
     return {'r':c['r']%16,'g':c['g']%16,'b':c['b']%16}
 
 def rotateDir(direction, rotate):
-    nextDir = {'u':'r', 'r':'d', 'd':'l', 'l':'u'}
     rotate %= 4
     if rotate == 0:
         return direction
-    else:
-        return rotateDir(nextDir[direction], rotate-1)
+    nextDir = {'u':'r', 'r':'d', 'd':'l', 'l':'u'}
+    return rotateDir(nextDir[direction], rotate-1)
     
 def unpackGrElement(element, canvas, scale, pos, rotate):
     t = element[0]
@@ -98,10 +95,7 @@ def _oc(d):
     o = {}
     for k in d:
         i = d[k]
-        if type(i) in (dict, list):
-            o[k] = i.copy()
-        else:
-            o[k] = i
+        o[k] = i.copy() if type(i) in (dict, list) else i
     return o
 
 def unpackElements(elList, canvas, scale, pos, rotate):
@@ -140,13 +134,10 @@ class Block:
         d = self.__class__.defaultOptions.copy()
         for k in d:
             i = d[k]
-            if type(i) is dict:
-                self.options[k] = i.copy()
-            else:
-                self.options[k] = i
+            self.options[k] = i.copy() if type(i) is dict else i
         self.randomId = random.randint(1, 100000)
         self.cell = cell
-        if neighbors == None:   
+        if neighbors is None:   
             neighbors = cell.pullNeighbors(pos)
         self.neighbors = neighbors
         self.state = self.__class__.defaultState.copy()
@@ -259,17 +250,13 @@ class Beam:
         cl3 = [(z['r']+1)*16-1,(z['g']+1)*16-1,(z['b']+1)*16-1]
         clr = listToTkColor(cl3)
         opt = {'fill': clr, 'width':4}
-        gGraphics = [
+        return [
                 ("line",(0,0.5,1,0.5), opt),
             ]
-        return gGraphics
     
     def getGraphics(self, scale, pos):
         glm = self.__class__.getGraphicsList
-        if self.direction in "ud":
-            rt = 1
-        else:
-            rt = 0
+        rt = 1 if self.direction in "ud" else 0
         return unpackElements(glm(self), self.cell.field.canvas, scale, (self.pos[0]-pos[0],self.pos[1]-pos[1]), rt)
     
     def tick(z):
@@ -304,25 +291,23 @@ class Field:
         self.size = size
         self.field = []
         for i in range(size[0]):
-            q = []
-            for j in range(size[1]):
-                q.append(Cell(field=self, pos = (i,j)))
+            q = [Cell(field=self, pos = (i,j)) for j in range(size[1])]
             self.field.append(q)
         self.tkRoot = tk.Tk()
         self.scale = scale
         self.mark = (-1,-1)
         self.selection = ((-1,-1), (-1,-1))
-        
+
         print("Field object initialized without errors (surprisingly)")
         self.viewport = size
         self.viewpos = (0,0)
         if max(size[0], size[1])>20:
             self.viewport = (min(size[0],32),min(size[1],24))
-            
+
         self.canvas = tk.Canvas(self.tkRoot, width=self.viewport[0]*scale+64, height=self.viewport[1]*scale+64)
         self.canvas.grid(row=1, column=0)
         self.font = tkf.Font(family="Times New Roman", size=self.scale // 2  )
-        
+
         self.pause = False
 
     ###
@@ -377,10 +362,10 @@ class Field:
     
     def copySelection(self):
         z = self.selection
-        x = 0
-        y = 1
         if self.isSelected():
             s = []
+            x = 0
+            y = 1
             for i in range(z[0][x], z[1][x]+1):
                 q = []
                 for j in range(z[0][y], z[1][y]+1):
@@ -395,9 +380,9 @@ class Field:
     
     def clearSelection(self):
         z = self.selection
-        x = 0
-        y = 1
         if self.isSelected():
+            x = 0
+            y = 1
             for i in range(z[0][x], z[1][x]+1):
                 for j in range(z[0][y], z[1][y]+1):
                     self[i,j].stack = []
@@ -508,25 +493,24 @@ class Field:
             
     def step(self):
         size = self.size
-        
+
         for i in range(size[0]):
             for j in range(size[1]):
                 cell = self[i,j]
                 cell.tick(beam=True, sall=False)
-        
+
         for i in range(size[0]):
             for j in range(size[1]):
                 cell = self[i,j]
                 for s in cell.stack:
-                    if type(s) is Beam:
-                        if s.active>0:
-                            s.active -= 1
-                
+                    if type(s) is Beam and s.active > 0:
+                        s.active -= 1
+
         for i in range(size[0]):
             for j in range(size[1]):
                 cell = self[i,j]
                 cell.tick(beam=False, sall=False)
-                
+
         for i in range(size[0]):
             for j in range(size[1]):
                 cell = self[i,j]
@@ -537,7 +521,7 @@ class Field:
                                 cell.stack.remove(s)
                             elif s.active == 0:
                                 ds.append(s.direction)
-                                
+
                 ud = 0
                 rl = 0
                 if (ds.count("u") + ds.count("d"))>1:
@@ -546,13 +530,15 @@ class Field:
                     rl = ds.count("r") + ds.count("l")
                 if (ud or rl):
                     for g in cell.stack:
-                        if type(g) is Beam:
-                            if (ud and (g.direction in ("u","d"))) or (rl and(g.direction in ("r","l"))):
-                                if g.direction in ("u","d"):
-                                    ud -= 1
-                                else:
-                                    rl -= 1
-                                cell.stack.remove(g)
+                        if type(g) is Beam and (
+                            (ud and (g.direction in ("u", "d")))
+                            or (rl and (g.direction in ("r", "l")))
+                        ):
+                            if g.direction in ("u","d"):
+                                ud -= 1
+                            else:
+                                rl -= 1
+                            cell.stack.remove(g)
                 
                     
         
@@ -563,14 +549,10 @@ class Field:
             self.canvas.create_line(16,16+j*scale,16+self.size[0]*scale,16+j*scale, fill="#b3b3b3")
             if j%4 == 0:
                 self.canvas.create_text(12,32+j*scale,text=str(j+self.viewpos[1]), font=self.font)
-                pass
-        
         for i in range(self.viewport[0]+1):
             self.canvas.create_line(16+i*scale,16,16+i*scale,16+self.size[1]*scale, fill="#b3b3b3")
             if i%4 == 0:
                 self.canvas.create_text(32+i*scale,12,text=str(i+self.viewpos[0]), font=self.font)
-                pass
-        
         if self.isMarked():
             mx = self.mark[0] - self.viewpos[0]
             my = self.mark[1] - self.viewpos[1]
@@ -581,7 +563,7 @@ class Field:
             px = self.selection[1][0] - self.viewpos[0]
             py = self.selection[1][1] - self.viewpos[1]
             self.canvas.create_rectangle(16+mx*scale, 16+my*scale, 16+(px+1)*scale, 16+(py+1)*scale, fill="#85a7c1", stipple='gray25')
-        
+
         for j in range(self.viewport[1]):
             for i in range(self.viewport[0]):
                 cell = self[i+self.viewpos[0],j+self.viewpos[1]]
@@ -604,30 +586,29 @@ class Field:
                     else:
                         if type(cell.stack[0]) is Beam:
                             beam = cell.stack[0]
-                            
-                            if beam.direction == 'r':
-                                r = ["┏   ┓","    →","┗   ┛"]
+
+                            if beam.direction == 'd':
+                                r = ["┏   ┓","     ","┗ ↓ ┛"]
                             elif beam.direction == 'l':
                                 r = ["┏   ┓","←    ","┗   ┛"]
+                            elif beam.direction == 'r':
+                                r = ["┏   ┓","    →","┗   ┛"]
                             elif beam.direction == 'u':
                                 r = ["┏ ↑ ┓","     ","┗   ┛"]
-                            elif beam.direction == 'd':
-                                r = ["┏   ┓","     ","┗ ↓ ┛"]
-                            if len(cell.stack)>1:
-                                if type(cell.stack[1]) is Beam:
-                                    beam = cell.stack[1]
-                                    
-                                    if beam.direction == 'r':
-                                        r[1] = "    →"
-                                    elif beam.direction == 'l':
-                                        r[1] = "←    "
-                                    elif beam.direction == 'u':
-                                        r[0] = "┏ ↑ ┓"
-                                    elif beam.direction == 'd':
-                                        r[2] = "┗ ↓ ┛"
+                            if len(cell.stack) > 1 and type(cell.stack[1]) is Beam:
+                                beam = cell.stack[1]
+
+                                if beam.direction == 'd':
+                                    r[2] = "┗ ↓ ┛"
+                                elif beam.direction == 'l':
+                                    r[1] = "←    "
+                                elif beam.direction == 'r':
+                                    r[1] = "    →"
+                                elif beam.direction == 'u':
+                                    r[0] = "┏ ↑ ┓"
                         else:
                             r = cell.stack[0].pretty()
-                
+
                 if i==0:
                     row[j*3] += "  "+r[0]
                     row[j*3+1] += "{:02}".format(j)+r[1]
