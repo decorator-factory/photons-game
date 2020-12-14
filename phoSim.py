@@ -11,8 +11,11 @@ import os
 root = tk.Tk()
 
 def fileOpen(arg=None):
-    filename = tkfd.askopenfilename(initialdir = os.curdir,title = "Open",filetypes = (("Pickle","*.pickle"),("all files","*.*")))
-    return filename
+    return tkfd.askopenfilename(
+        initialdir=os.curdir,
+        title="Open",
+        filetypes=(("Pickle", "*.pickle"), ("all files", "*.*")),
+    )
 
 filename = fileOpen()#root.destroy()
 
@@ -45,7 +48,7 @@ def Step():
     global speed, fps
     t0 = time.time()
     if not Z.pause:
-        for i in range(speed):
+        for _ in range(speed):
             Z.step()
     Z.draw(Z.scale)
     t1 = time.time()
@@ -65,9 +68,8 @@ def callbackLClick(arg):
     cy = (arg.y-16)//Z.scale
     cx,cy = Z.adjpos((cx,cy))
     s = Z[cx,cy]
-    if s.stack != []:
-        if type(s.stack) is not photons.Beam:
-            s.stack[0].clickMouse()
+    if s.stack != [] and type(s.stack) is not photons.Beam:
+        s.stack[0].clickMouse()
 
 Z.tkRoot.bind("<Left>", lambda a: Z.shiftViewportRefresh((-1,0)))
 Z.tkRoot.bind("<Right>", lambda a: Z.shiftViewportRefresh((1,0)))

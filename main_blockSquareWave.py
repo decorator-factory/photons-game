@@ -107,5 +107,4 @@ class main(photons.Block):
             }
     
     def pretty(self):
-        x = main.pictures[self.rotate]
-        return x
+        return main.pictures[self.rotate]

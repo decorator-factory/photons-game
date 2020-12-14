@@ -38,39 +38,36 @@ class main(photons.Block):
         return a
     
     def clickMouse(self):
-        if self.state["state"] == "on":
-            self.state["state"] = "main"
-        else:
-            self.state["state"] = "on"
+        self.state["state"] = "main" if self.state["state"] == "on" else "on"
     
     def stack(self, z):
-        if self.state["state"] == "on":
-            dirOut = rotd('r', self.rotate)
-            h = dirDef[dirOut]
-            newPos = (self.pos[0]+h[0], self.pos[1]+h[1])
-            #self.state["state"] = "main"
-            return [
-                    
-                    (
-                     "add",
-                     [photons.Beam(   
-                        cell = self.cell.field[newPos],
-                        field = self.cell.field,
-                        direction = dirOut,
-                        color = photons.fixColor(self.getOption("color")),
-                        pos = newPos,
-                        active = 1
-                      )
-                    ]
-                   ),
-                     
-                   (
-                    "remove",
-                    z
-                   )
-                    ]
-        else:
+        if self.state["state"] != "on":
             return ("remove",z)
+
+        dirOut = rotd('r', self.rotate)
+        h = dirDef[dirOut]
+        newPos = (self.pos[0]+h[0], self.pos[1]+h[1])
+        #self.state["state"] = "main"
+        return [
+
+                (
+                 "add",
+                 [photons.Beam(   
+                    cell = self.cell.field[newPos],
+                    field = self.cell.field,
+                    direction = dirOut,
+                    color = photons.fixColor(self.getOption("color")),
+                    pos = newPos,
+                    active = 1
+                  )
+                ]
+               ),
+
+               (
+                "remove",
+                z
+               )
+                ]
                  
     pictures = {
             0: ("╔═══╗","║ L─╢","╚═══╝"),
@@ -80,5 +77,4 @@ class main(photons.Block):
             }
     
     def pretty(self):
-        x = main.pictures[self.rotate]
-        return x
+        return main.pictures[self.rotate]

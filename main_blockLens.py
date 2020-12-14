@@ -102,33 +102,33 @@ class main(photons.Block):
     
     def stack(self,z):
         dirIn1 = rotd('u', self.rotate)
-        if ("off" in self.state["state"]) != self.getOption("invert"):
-            dirIn2 = rotd('r', self.rotate)
-        else:
+        if ("off" in self.state["state"]) == self.getOption("invert"):
             dirIn2 = rotd('l', self.rotate)
+        else:
+            dirIn2 = rotd('r', self.rotate)
         dirInB = rotd('d', self.rotate)
-        
+
         on = False
         keep = None
-        
+
         for i in z:
             if i.direction == dirInB:
                 on = True
             if i.direction in (dirIn1, dirIn2):
                 keep = i.color
-                
-            
-        if not on:
+
+
+        if on:
+            self.state["ticks"] = self.getOption("cap")
+            self.state["state"] = self.state["state"].replace("off","on")
+
+
+
+        else:
             if ("on" in self.state["state"]):
                 self.state["ticks"] -= 1
                 if self.state["ticks"] <= 0:
                     self.state["state"] = self.state["state"].replace("on","off")
-        else:
-            self.state["ticks"] = self.getOption("cap")
-            self.state["state"] = self.state["state"].replace("off","on")
-            
-                
-        
         if "Keep" in self.state["state"]:
             self.state["state"] = self.state["state"].replace("Keep","")
             h = dirDef[dirIn2]
@@ -142,18 +142,18 @@ class main(photons.Block):
                                                 pos = newPos,
                                                 active = 1
                                             )]
-                     
+
                      )
                     ]
         else:
             u = []
-        
-        if not (keep is None):
+
+        if keep is not None:
             self.state["colorCaptive"] = keep
             self.state["state"] = self.state["state"] + "Keep"
-            
+
         u.append(("remove",z))
-            
+
         return u
     
     
@@ -170,15 +170,11 @@ class main(photons.Block):
             r[0] = r[0].replace("↑","═")
         if (left and self.rotate==1) or (right and self.rotate==3):
             r[2] = r[2].replace("↓","═")
-            
+
         a = self.getOption("cap")
-        if a>9:
-            a = "C"
-        else:
-            a = str(a)
-            
+        a = "C" if a>9 else str(a)
         if self.getOption("invert"):
             r = [i.replace("*","o") for i in r]
-            
+
         r[1] = r[1].replace("?",a)
         return r
